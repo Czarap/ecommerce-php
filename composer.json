@@ -1,10 +1,5 @@
 {
-    "name": "ecommerce-php",
-    "description": "E-commerce PHP Application",
     "require": {
-        "php": "^8.0",
-        "ext-mysqli": "*",
-        "ext-json": "*",
         "google/apiclient": "^2.15.0"
     }
 } 
