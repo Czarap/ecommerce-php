@@ -1,0 +1,36 @@
+# Dependencies
+/vendor/
+
+# Environment files
+.env
+
+# IDE files
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Uploaded files
+/uploads/*
+!/uploads/.gitkeep
+
+# Docker volumes
+mysql_data/
+
+# Logs
+*.log
+/logs/*
+!/logs/.gitkeep
+
+# Ignore everything in parent directory
+../*
+!../ecommerce/
+
+# Ignore local development files
+/node_modules/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local 
