@@ -17,10 +17,10 @@ function getBaseUrl() {
     return rtrim($protocol . $host . $path, '/');
 }
 
-$host = 'localhost';
-$user = 'root';
-$pass = 'YES';
-$db = 'ecommerce';
+$host = 'sql102.infinityfree.com';
+$user = 'if0_39106764';
+$pass = 'czarvill123';
+$db = 'if0_39106764_ecommerce';
 
 try {
     $conn = new mysqli($host, $user, $pass, $db);
