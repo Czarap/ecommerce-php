@@ -1,6 +1,16 @@
-<?php 
+<?php
+// Set base path for includes
+$_SERVER['DOCUMENT_ROOT'] = __DIR__;
+
+// Include configuration
+require_once __DIR__ . '/includes/config.php';
+
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $page_title = "Home";
-include 'includes/config.php';
 include 'includes/header.php';
 
 // Get featured products

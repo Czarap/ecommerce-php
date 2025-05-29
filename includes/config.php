@@ -17,25 +17,46 @@ function getBaseUrl() {
     return rtrim($protocol . $host . $path, '/');
 }
 
-$host = 'localhost';
-$user = 'root';
-$pass = 'YES';
-$db = 'ecommerce';
+// Database configuration
+$db_host = getenv('DB_HOST') ?: 'localhost';
+$db_user = getenv('DB_USERNAME') ?: 'root';
+$db_pass = getenv('DB_PASSWORD') ?: '';
+$db_name = getenv('DB_DATABASE') ?: 'ecommerce';
 
-try {
-    $conn = new mysqli($host, $user, $pass, $db);
+// Create connection
+$conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
-    if ($conn->connect_error) {
-        throw new Exception("Connection failed: " . $conn->connect_error);
-    }
-
-    // Set the character set to utf8mb4
-    if (!$conn->set_charset("utf8mb4")) {
-        throw new Exception("Error setting character set: " . $conn->error);
-    }
-} catch (Exception $e) {
-    die("Database connection error: " . $e->getMessage());
+// Check connection
+if ($conn->connect_error) {
+    error_log("Connection failed: " . $conn->connect_error);
+    die("Connection failed. Please try again later.");
 }
+
+// Set charset to utf8mb4
+$conn->set_charset("utf8mb4");
+
+// Define base URL
+$base_url = isset($_SERVER['VERCEL_URL']) 
+    ? 'https://' . $_SERVER['VERCEL_URL']
+    : 'http://localhost/ecommerce';
+
+// Define constants
+define('BASE_URL', $base_url);
+define('UPLOADS_DIR', __DIR__ . '/../uploads');
+
+// Error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', getenv('APP_DEBUG') === 'true' ? '1' : '0');
+
+// Session configuration
+ini_set('session.cookie_httponly', '1');
+ini_set('session.use_only_cookies', '1');
+if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+    ini_set('session.cookie_secure', '1');
+}
+
+// Set timezone
+date_default_timezone_set('Asia/Manila');
 
 function sanitize($data) {
     return htmlspecialchars(strip_tags(trim($data)));
