@@ -6,45 +6,6 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Add this after session_start() and before the first include
-$notification = [];
-
-// Get URL parameters for notifications
-if (isset($_GET['status'])) {
-    $status = $_GET['status'];
-    $order_id = isset($_GET['order_id']) ? $_GET['order_id'] : '';
-    $error = isset($_GET['error']) ? $_GET['error'] : '';
-
-    switch($status) {
-        case 'failed':
-            $notification = [
-                'type' => 'error',
-                'message' => $error === 'payment_failed' ? 
-                    "Payment failed for Order #$order_id. Please try again or contact support." :
-                    "An error occurred while processing Order #$order_id."
-            ];
-            break;
-        case 'pending':
-            $notification = [
-                'type' => 'warning',
-                'message' => "Order #$order_id is pending payment confirmation."
-            ];
-            break;
-        case 'processing':
-            $notification = [
-                'type' => 'info',
-                'message' => "Order #$order_id is being processed."
-            ];
-            break;
-        case 'completed':
-            $notification = [
-                'type' => 'success',
-                'message' => "Order #$order_id has been completed successfully!"
-            ];
-            break;
-    }
-}
-
 include 'includes/config.php';
 require_once 'includes/auth.php';
 
@@ -237,7 +198,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_order'])) {
         max-width: 1200px;
         margin: 0 auto;
         padding: 2rem;
-        margin-top: calc(2rem + 60px);
     }
 
     .account-header {
@@ -1173,97 +1133,110 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_order'])) {
         }
     }
 
-    .notification-banner {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
+    /* Status Message Styles */
+    .status-message {
+        margin: 1rem auto;
         padding: 1rem;
-        z-index: 1001;
-        animation: slideDown 0.5s ease-out;
+        border-radius: 8px;
+        max-width: 800px;
+        animation: slideDown 0.3s ease-out;
         display: flex;
-        justify-content: center;
+        justify-content: space-between;
         align-items: center;
+        gap: 1rem;
+    }
+
+    .status-message.error {
+        background: rgba(220, 53, 69, 0.1);
+        border: 1px solid rgba(220, 53, 69, 0.3);
+        color: #dc3545;
+    }
+
+    .status-message.success {
+        background: rgba(40, 167, 69, 0.1);
+        border: 1px solid rgba(40, 167, 69, 0.3);
+        color: #28a745;
+    }
+
+    .status-content {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 1;
+    }
+
+    .status-content i {
+        font-size: 1.2rem;
+    }
+
+    .close-message {
+        background: none;
+        border: none;
+        color: inherit;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0;
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+    }
+
+    .close-message:hover {
+        opacity: 1;
     }
 
     @keyframes slideDown {
         from {
-            transform: translateY(-100%);
+            transform: translateY(-20px);
+            opacity: 0;
         }
         to {
             transform: translateY(0);
+            opacity: 1;
         }
-    }
-
-    .notification-banner.error {
-        background: rgba(220, 53, 69, 0.95);
-        color: white;
-    }
-
-    .notification-banner.warning {
-        background: rgba(255, 193, 7, 0.95);
-        color: #000;
-    }
-
-    .notification-banner.success {
-        background: rgba(40, 167, 69, 0.95);
-        color: white;
-    }
-
-    .notification-banner.info {
-        background: rgba(23, 162, 184, 0.95);
-        color: white;
-    }
-
-    .notification-content {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        max-width: 800px;
-        margin: 0 auto;
-        font-weight: 500;
-    }
-
-    .notification-content i {
-        font-size: 1.2rem;
-    }
-
-    .notification-close {
-        background: none;
-        border: none;
-        color: inherit;
-        font-size: 1.5rem;
-        cursor: pointer;
-        padding: 0 0.5rem;
-        opacity: 0.8;
-        transition: opacity 0.3s;
-    }
-
-    .notification-close:hover {
-        opacity: 1;
     }
     </style>
 </head>
 <body>
-    <?php if (!empty($notification)): ?>
-        <div class="notification-banner <?= $notification['type'] ?>">
-            <div class="notification-content">
-                <i class="fas <?= $notification['type'] === 'error' ? 'fa-exclamation-circle' : 
-                               ($notification['type'] === 'warning' ? 'fa-exclamation-triangle' : 
-                               ($notification['type'] === 'success' ? 'fa-check-circle' : 'fa-info-circle')) ?>">
-                </i>
-                <span><?= htmlspecialchars($notification['message']) ?></span>
-            </div>
-            <button class="notification-close" onclick="this.parentElement.style.display='none'">×</button>
-        </div>
-    <?php endif; ?>
-
     <?php include 'includes/header.php'; ?>
 
     <div class="account-container">
         <div class="account-header">
-            <h1 class="account-title">My Account Dashboard
-            </h1>
+            <h1 class="account-title">My Account Dashboard</h1>
+            <?php
+            // Display status messages from URL parameters
+            $status = isset($_GET['status']) ? $_GET['status'] : '';
+            $error = isset($_GET['error']) ? $_GET['error'] : '';
+            
+            if ($status || $error) {
+                $messageType = $status === 'failed' || $error ? 'error' : 'success';
+                $messageText = '';
+                
+                // Define message based on status and error
+                if ($error === 'payment_failed') {
+                    $messageText = 'Payment processing failed. Please try again or choose a different payment method.';
+                } elseif ($error === 'invalid_order') {
+                    $messageText = 'Invalid order or order not found.';
+                } elseif ($status === 'pending') {
+                    $messageText = 'Your order has been placed and is pending payment.';
+                } elseif ($status === 'processing') {
+                    $messageText = 'Your payment is being processed.';
+                } elseif ($status === 'completed') {
+                    $messageText = 'Payment completed successfully!';
+                } elseif ($status === 'failed') {
+                    $messageText = 'There was an issue with your payment.';
+                }
+                
+                if ($messageText) {
+                    echo "<div class='status-message $messageType'>
+                            <div class='status-content'>
+                                <i class='fas " . ($messageType === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle') . "'></i>
+                                <span>$messageText</span>
+                            </div>
+                            <button class='close-message' onclick='this.parentElement.style.display=\"none\"'>×</button>
+                          </div>";
+                }
+            }
+            ?>
         </div>
 
         <div class="tab-container">
